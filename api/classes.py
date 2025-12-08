@@ -59,13 +59,17 @@ class handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             body = json.loads(post_data.decode('utf-8'))
 
-            # [수정] 결과를 response 하나로 받기
-            response = supabase.table('classes').insert(body).execute()
+            # [핵심 수정] .select() 추가
+            response = supabase.table('classes').insert(body).select().execute()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps(response.data[0]).encode('utf-8'))
+            # 데이터가 리스트로 오므로 첫 번째 요소 반환
+            if response.data:
+                self.wfile.write(json.dumps(response.data[0]).encode('utf-8'))
+            else:
+                self.wfile.write(json.dumps({}).encode('utf-8'))
             
         except Exception as e:
             print(f"Class Create Error: {str(e)}")
