@@ -54,13 +54,21 @@ class handler(BaseHTTPRequestHandler):
 
     # POST: 수업 추가 (이건 간단하니까 바로 처리)
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        body = json.loads(post_data.decode('utf-8'))
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            body = json.loads(post_data.decode('utf-8'))
 
-        data, count = supabase.table('classes').insert(body).execute()
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(data[1][0]).encode('utf-8'))
+            # [수정] 결과를 response 하나로 받기
+            response = supabase.table('classes').insert(body).execute()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(response.data[0]).encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Class Create Error: {str(e)}")
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))

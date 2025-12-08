@@ -71,18 +71,21 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response_data).encode('utf-8'))
 
     def do_POST(self):
-        # 평가 저장 로직
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        body = json.loads(post_data.decode('utf-8'))
-
         try:
-            data, count = supabase.table('daily_logs').insert(body).execute()
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            body = json.loads(post_data.decode('utf-8'))
+
+            # [수정] 결과를 response 하나로 받기
+            response = supabase.table('daily_logs').insert(body).execute()
+            
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({"success": True}).encode('utf-8'))
+            
         except Exception as e:
+            print(f"Evaluation Error: {str(e)}")
             self.send_response(500)
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
