@@ -60,7 +60,7 @@ class handler(BaseHTTPRequestHandler):
             body = json.loads(post_data.decode('utf-8'))
 
             # [핵심 수정] .select() 추가
-            response = supabase.table('classes').insert(body).select().execute()
+            response = supabase.table('classes').insert(body).execute()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
